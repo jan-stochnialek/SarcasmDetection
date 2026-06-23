@@ -1,0 +1,15 @@
+# Large / generated artifacts — not committed to git
+data/            # raw + processed datasets (download separately)
+models/          # fine-tuned transformer checkpoints (large)
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# OS / IDE
+.DS_Store
+.idea/
+.ipynb_checkpoints/

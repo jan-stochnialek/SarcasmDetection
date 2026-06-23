@@ -1,0 +1,8 @@
+# Place the SARC dataset here.
+#
+# Download from Kaggle: https://www.kaggle.com/datasets/danofer/sarcasm
+# The pipeline expects this file:
+#
+#     data/raw/train-balanced-sarcasm.csv
+#
+# (This .gitkeep file just keeps the otherwise-empty folder in version control.)
