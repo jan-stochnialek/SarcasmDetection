@@ -1,40 +1,19 @@
 """
-engine/data.py
-==============
 Loads the Reddit comments from the CSV file, cleans the text, and splits the
 comments into a TRAINING set (used to teach the models) and a TEST set (used to
 grade them on comments they have never seen).
 """
 
-# `os` lets us read environment variables (used on Kaggle).
-# `re` lets us find-and-replace patterns in text.
-# `Path` is a tidy way to talk about file locations.
 import os
 import re
 import json
 from pathlib import Path
-
-# pandas works with tables of data, like a spreadsheet in code.
 import pandas as pd
-# scikit-learn gives us a ready-made function for splitting data into train/test.
-# GroupShuffleSplit lets us keep a whole thread (a parent and its replies) together
-# on one side of the split, instead of splitting individual comments.
 from sklearn.model_selection import GroupShuffleSplit
-
-# settings.py (one folder up) holds the knobs you can change. We import the whole
-# module and read e.g. settings.SAMPLE_SIZE only when we need it, so that changing a
-# setting (for example from a notebook) takes effect right away.
 import settings
 
 
-# ---------------------------------------------------------------------------
-# Where is the data file?
-# By default we look in the project's  data/raw  folder. On Kaggle the file lives
-# somewhere else, so we also allow an environment variable named SARC_CSV to point
-# at it. `os.environ.get(name, default)` returns the variable if it is set, else
-# the default.
-# ---------------------------------------------------------------------------
-PROJECT_FOLDER = Path(__file__).resolve().parent.parent          # the 'project' folder
+PROJECT_FOLDER = Path(__file__).resolve().parent.parent
 DATA_FOLDER = PROJECT_FOLDER.parent / "data" / "raw"
 DEFAULT_FILE = DATA_FOLDER / "train-balanced-sarcasm.csv"
 DATA_FILE = os.environ.get("SARC_CSV", str(DEFAULT_FILE))

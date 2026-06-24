@@ -27,7 +27,7 @@ EPOCHS = 2
 # 64 suits a big cloud GPU (A100/H100 80GB). On a smaller GPU lower it to 16, and
 # if you still get an "out of memory" error make it smaller again (try 8).
 # ---------------------------------------------------------------------------
-BATCH_SIZE = 64
+BATCH_SIZE = 96
 
 # ---------------------------------------------------------------------------
 # A fixed number that makes the random parts (shuffling, sampling) behave the

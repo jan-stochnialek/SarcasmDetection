@@ -1,17 +1,10 @@
 """
-engine/baseline.py
-==================
 The SIMPLE model: TF-IDF + logistic regression.
 
   - TF-IDF turns each comment into a list of numbers, one per word, where rare,
     distinctive words count for more than common words like "the".
   - Logistic regression then learns a line that separates sarcastic comments from
     non-sarcastic ones in that number-space.
-
-It is fast, runs on any computer (no GPU needed), and is our "baseline" — the
-score the smarter models have to beat.
-
-You do not need to edit this file.
 """
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -23,14 +16,9 @@ from engine.scoring import measure, save_result
 
 
 def train_and_score_baseline(use_context):
-    """Train and grade the simple model.
-
-    If use_context is True, we stick the parent comment in front of the comment
-    so the model can see both.
-    """
     train_data, test_data = get_train_and_test()
 
-    # Decide what text to feed the model, and give this run a name.
+    # Join parent + comment if the run is with context, otherwise just use the comment.
     if use_context:
         train_text = train_data["parent_comment"] + " " + train_data["comment"]
         test_text = test_data["parent_comment"] + " " + test_data["comment"]
@@ -40,8 +28,6 @@ def train_and_score_baseline(use_context):
         test_text = test_data["comment"]
         name = "Baseline"
 
-    print(f"Training: {name} ...")
-
     # A "pipeline" chains steps together: first TF-IDF turns text into numbers,
     # then logistic regression classifies it. ngram_range=(1, 2) means we count
     # single words AND word-pairs (so "yeah right" is also captured).
@@ -50,11 +36,12 @@ def train_and_score_baseline(use_context):
         LogisticRegression(max_iter=1000),
     )
 
-    # ".fit" is where the model learns from the training comments and their labels.
+    # Train model
     model.fit(train_text, train_data["label"])
 
-    # Now ask the trained model about the test comments it has never seen.
+    # Predict on test data
     predicted_labels = model.predict(test_text)
+    
     # "[:, 1]" takes the probability of the SARCASTIC class for each comment.
     predicted_scores = model.predict_proba(test_text)[:, 1]
 
