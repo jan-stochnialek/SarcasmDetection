@@ -64,14 +64,14 @@ def train_and_score(model_name, use_context):
 
     # 2. A small helper that tokenizes a batch of rows. With context we hand the
     #    tokenizer TWO texts (parent, comment) so the model reads them as a pair.
-    #    Both modes use the SAME length limit (settings.MAX_TOKENS), and with
-    #    context we trim only the parent ("only_first") — so the COMMENT is treated
-    #    identically either way and the only difference is the added context. That
-    #    keeps the with/without-context comparison fair (no length confound).
+    #    Both modes use the SAME length limit (settings.MAX_TOKENS), so there is no
+    #    length confound in the comparison. With context, "longest_first" trims
+    #    whichever of the two is longer until the pair fits — in practice comments
+    #    are short, so the comment is kept whole and only the parent is shortened.
     def to_tokens(rows):
         if use_context:
             return tokenizer(rows["parent_comment"], rows["comment"],
-                             truncation="only_first", max_length=settings.MAX_TOKENS)
+                             truncation="longest_first", max_length=settings.MAX_TOKENS)
         return tokenizer(rows["comment"], truncation=True, max_length=settings.MAX_TOKENS)
 
     # 3. Convert our pandas tables into the format the trainer wants, then tokenize.
