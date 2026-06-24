@@ -87,7 +87,10 @@ def train_and_score(model_name, use_context):
     #    weights — and the training-time shuffling — are the same every run, which
     #    makes the results as reproducible as a GPU allows.
     set_seed(settings.RANDOM_SEED)
-    model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=2)
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_name, num_labels=2,
+        attn_implementation="sdpa",    # PyTorch's faster scaled-dot-product attention
+    )
 
     # 5. Use the GPU if there is one — training is much faster on a GPU. On modern
     #    GPUs (A100/H100) bf16 is faster and more numerically stable than fp16;
@@ -108,6 +111,7 @@ def train_and_score(model_name, use_context):
         save_strategy="no",            # don't save checkpoints (keeps the disk tidy)
         report_to="none",
         logging_steps=50,
+        dataloader_num_workers=2,      # prepare batches in the background so the GPU waits less
     )
 
     # 7. The Trainer runs the whole training loop for us.
