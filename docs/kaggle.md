@@ -1,252 +1,124 @@
-# Running this project on Kaggle
+# Running this project on Kaggle (free GPU)
 
-A complete, step-by-step guide to running the whole pipeline (baseline +
-BERT/RoBERTa, with and without context) on Kaggle's **free GPU**.
+Kaggle is the easiest place to run this: it gives you a free GPU, and the SARC
+dataset is already hosted there (nothing to download).
 
-Kaggle is the easiest place to run this because the SARC dataset is already hosted
-there — nothing to download.
-
-There are two ways to do it:
-
-- **The easy path** — import the ready-made notebook
-  [`../project/notebooks/sarcasm_kaggle.ipynb`](../project/notebooks/sarcasm_kaggle.ipynb)
-  and run it top to bottom (see [§7](#7-the-easy-path-use-the-provided-notebook)).
-- **The manual path** — do the steps yourself (§1–§6 below). Read these even if you
-  use the notebook, so you understand what each cell does.
+There's a ready-made notebook at
+[`../project/notebooks/sarcasm_kaggle.ipynb`](../project/notebooks/sarcasm_kaggle.ipynb)
+— import it and run it. The steps below explain what it does.
 
 ---
 
-## 0. Cost and limits (it's free)
+## 0. It's free
 
-Kaggle is free, no credit card. You only need to **verify your account with a phone
-number** (Settings → Phone Verification) — this is required to unlock the GPU and
-Internet.
-
-| Resource | Free tier |
-|---|---|
-| GPU | ~**30 hours/week** of NVIDIA T4×2 or P100 (quota resets weekly) |
-| Session length | up to **12 h** per run; **~20 min idle** timeout |
-| Disk (`/kaggle/working`) | ~20 GB, writable and saved with the notebook version |
-| Dataset | `danofer/sarcasm` is public and free to attach |
-
-The full matrix below fits comfortably inside one weekly quota.
+Kaggle is free (you only need to verify your account with a phone number to unlock
+the GPU). You get ~30 hours of GPU per week, sessions up to 12 hours, and ~20 GB of
+working space. That's plenty for this project.
 
 ---
 
-## 1. Create a GPU notebook
+## 1. Make a GPU notebook
 
-1. Go to <https://www.kaggle.com/code> → **New Notebook**.
-2. In the right-hand sidebar open **Settings → Accelerator** and choose
-   **GPU T4 x2** (or P100). The code uses a single GPU; T4×2 is fine.
-3. Leave **Settings → Internet** **ON** if you plan to `git clone` your code or
-   `pip install` anything (see §3, Method A). It can stay off if you upload your
-   code as a dataset (Method B).
+1. <https://www.kaggle.com/code> → **New Notebook**.
+2. Right sidebar → **Settings → Accelerator → GPU T4 x2**.
 
-> On a CUDA GPU the project automatically enables fp16 mixed precision, so training
-> is much faster than on a laptop.
+   > ⚠️ **Pick T4, not P100.** Kaggle's PyTorch no longer supports the older P100
+   > (`sm_60`); a P100 crashes with *"CUDA error: no kernel image is available"*.
+   > The T4 works fine.
 
 ---
 
-## 2. Attach the SARC dataset
+## 2. Add the dataset
 
-1. In the notebook, click **+ Add Data** (right sidebar).
-2. Search **"Sarcasm"** and add **danofer/sarcasm**.
-3. It mounts read-only under `/kaggle/input/`. The file we need ends up at:
-
-   ```
-   /kaggle/input/sarcasm/train-balanced-sarcasm.csv
-   ```
-
-`/kaggle/input/` is **read-only** — that's why the code must live (and write its
-outputs) under `/kaggle/working/` instead (next step).
+**+ Add Data** → search **"Sarcasm"** → add **danofer/sarcasm**. It appears
+read-only at `/kaggle/input/sarcasm/train-balanced-sarcasm.csv`.
 
 ---
 
-## 3. Get the project code onto Kaggle
+## 3. Get the code onto Kaggle
 
-The code must live under the **writable** `/kaggle/working/` directory so it can
-save metrics and model checkpoints. Pick one method.
+The code must live in the **writable** `/kaggle/working/` folder. Pick one:
 
-### Method A — clone from GitHub (needs Internet ON)
-
-Push this repository to GitHub, then in a notebook cell:
-
-```python
-!git clone https://github.com/<your-username>/EmiliaProject.git /kaggle/working/EmiliaProject
-```
-
-### Method B — upload the repo as a Kaggle Dataset (no Internet needed)
-
-1. On your machine, zip the project (the `EmiliaProject` folder, including
-   `project/`). You can exclude `project/.venv`, `data/`, `models/`, `results/`.
-2. On Kaggle: **+ Add Data → Upload → New Dataset**, upload the zip, give it a
-   slug (say `emilia-code`).
-3. Attach it to the notebook, then copy it into the writable area:
-
-   ```python
-   !cp -r /kaggle/input/emilia-code/EmiliaProject /kaggle/working/
-   ```
-
-### Confirm the code is in place
-
-```python
-import os
-CODE_DIR = "/kaggle/working/EmiliaProject/project"
-assert os.path.isdir(CODE_DIR), "Code not found — re-check Method A or B."
-print("code at", CODE_DIR)
-```
+- **GitHub:** turn on *Settings → Internet*, then
+  `!git clone https://github.com/<you>/EmiliaProject.git /kaggle/working/EmiliaProject`
+- **Upload as a dataset:** zip the repo, *+ Add Data → Upload*, then
+  `!cp -r /kaggle/input/<your-slug>/EmiliaProject /kaggle/working/`
 
 ---
 
-## 4. Point the pipeline at the mounted dataset
+## 4. Tell the code where the data is
 
-The project reads the CSV path from the **`SARC_CSV`** environment variable (falling
-back to `data/raw/` locally). Set it to the Kaggle mount path — globbing makes this
-robust to the exact folder name:
+The project reads the data path from the `SARC_CSV` environment variable. Set it
+once (the notebook does this for you):
 
 ```python
 import os, glob
-hits = glob.glob("/kaggle/input/**/train-balanced-sarcasm.csv", recursive=True)
-assert hits, "Add the danofer/sarcasm dataset via + Add Data first."
-os.environ["SARC_CSV"] = hits[0]
-print("SARC_CSV =", hits[0])
+os.environ["SARC_CSV"] = glob.glob("/kaggle/input/**/train-balanced-sarcasm.csv", recursive=True)[0]
 ```
-
-`!` shell commands in the notebook inherit this environment variable, so every
-`python run.py ...` call below will use the Kaggle dataset automatically.
 
 ---
 
-## 5. Check dependencies
-
-Kaggle ships a recent Python ML stack. The project needs **transformers ≥ 4.46**
-(for the `processing_class` API). Upgrade only if needed:
+## 5. Check the libraries
 
 ```python
-!pip install -q -U "transformers>=4.46" datasets
+!pip install -q "transformers>=4.46"        # do NOT add -U, it can break the GPU
 import torch
-print("CUDA available:", torch.cuda.is_available())   # should print True
+print("CUDA:", torch.cuda.is_available())    # should be True
 ```
 
 ---
 
-## 6. Run the pipeline
+## 6. Run it
 
-All commands are the normal `run.py` subcommands; only the paths are Kaggle-specific.
-Outputs are written under `/kaggle/working/EmiliaProject/results/`.
-
-```python
-PROJ = "/kaggle/working/EmiliaProject/project"
-RES  = "/kaggle/working/EmiliaProject/results"
-```
-
-**Sanity-check the data:**
+The simplest way — run the whole project with one command:
 
 ```python
-!python {PROJ}/run.py prepare
+!python /kaggle/working/EmiliaProject/project/run_everything.py
 ```
 
-**Baseline (seconds):**
+This trains the baseline, BERT, and RoBERTa (each with and without context) and
+prints the comparison table at the end.
+
+Prefer one step at a time?
 
 ```python
-!python {PROJ}/run.py baseline
-!python {PROJ}/run.py baseline --context
+CODE = "/kaggle/working/EmiliaProject/project"
+!python {CODE}/check_data.py
+!python {CODE}/train_baseline.py
+!python {CODE}/train_baseline_context.py
+!python {CODE}/train_bert.py
+!python {CODE}/train_bert_context.py
+!python {CODE}/train_roberta.py
+!python {CODE}/train_roberta_context.py
+!python {CODE}/show_results.py
 ```
 
-**Fine-tune the transformers** (`--subset` keeps it quick; see §6.1 for sizing):
+### Want it faster, or to use more data?
 
-```python
-!python {PROJ}/run.py train --model bert-base-uncased           --subset 50000 --epochs 3
-!python {PROJ}/run.py train --model bert-base-uncased --context --subset 50000 --epochs 3
-!python {PROJ}/run.py train --model roberta-base               --subset 50000 --epochs 3
-!python {PROJ}/run.py train --model roberta-base --context     --subset 50000 --epochs 3
-```
+Open **`project/settings.py`** and change:
+- `SAMPLE_SIZE` — smaller = faster (e.g. `20000`); set to `None` to use all ~1M
+  comments (best results, slower).
+- `EPOCHS` — how long each transformer trains (2–3 is normal).
 
-**Significance test (does context help?):**
-
-```python
-!python {PROJ}/run.py compare \
-    --a {RES}/bert-base-uncased_noctx_seed42_preds.npz \
-    --b {RES}/bert-base-uncased_ctx_seed42_preds.npz
-```
-
-**Build the comparison table:**
-
-```python
-!python {PROJ}/run.py report
-
-from IPython.display import Markdown, display
-display(Markdown(open(f"{RES}/summary.md").read()))
-```
-
-### 6.1 Recommended settings on a Kaggle GPU
-
-| Setting | Suggestion | Why |
-|---|---|---|
-| `--subset` | `50000` to start; drop the flag for the **full ~966k rows** | T4 fp16 is fast; the full set gives the best numbers |
-| `--epochs` | `3` | standard for BERT fine-tuning |
-| `--batch-size` | default `16` (raise to `32` on T4 if memory allows) | no MPS limits here, unlike the laptop |
-| seeds | run each config with `--seed 13 42 123` | report mean ± std (the report aggregates them) |
-
-Approximate runtime per fine-tune at `--subset 50000`, 3 epochs on a T4: ~15 min
-(no context) / ~25 min (context). The full 4-config × 3-seed matrix is a few hours
-— within the weekly quota.
-
-For a multi-seed sweep, add seeds like:
-
-```python
-for s in (13, 42, 123):
-    !python {PROJ}/run.py train --model roberta-base --context --subset 50000 --epochs 3 --seed {s}
-```
+On a T4, expect roughly 15–25 minutes per transformer run with `SAMPLE_SIZE = 50000`.
 
 ---
 
-## 7. The easy path: use the provided notebook
+## 7. Save your results
 
-Instead of writing the cells yourself:
-
-1. **File → Import Notebook** and upload
-   [`../project/notebooks/sarcasm_kaggle.ipynb`](../project/notebooks/sarcasm_kaggle.ipynb).
-2. Enable the GPU (§1) and add the dataset (§2).
-3. Edit **one line** in the first code cell — the clone/copy line — to point at your
-   code (Method A or B from §3).
-4. Run all cells top to bottom.
+Outputs are written to `/kaggle/working/EmiliaProject/results/`. Use **Save
+Version** to keep them — or, for a long run, *Save & Run All (Commit)* runs the
+whole notebook in the background so it won't stop at the idle timeout.
 
 ---
 
-## 8. Saving and downloading your results
+## Troubleshooting
 
-Everything is written to `/kaggle/working/EmiliaProject/`:
-
-- `results/summary.md` and `results/summary.csv` — the comparison table
-- `results/*_metrics.json` — per-run metrics
-- `results/*_cm.png` — confusion matrices
-- `models/<run_name>/` — fine-tuned checkpoints (large)
-
-To keep them:
-
-- **Save Version** (top-right) snapshots the notebook and its `/kaggle/working`
-  outputs. Use **Save & Run All (Commit)** to run the whole notebook **headless**
-  (this avoids the 20-minute idle timeout for long sweeps).
-- Or open the **Output** tab / **Data** panel and download individual files.
-
----
-
-## 9. Troubleshooting
-
-| Symptom | Fix |
+| Problem | Fix |
 |---|---|
-| `Add the danofer/sarcasm dataset…` assertion | You didn't attach the dataset — do §2. |
-| `Code not found` assertion | The clone/copy in §3 didn't run or used the wrong slug. |
-| GPU/Internet options greyed out | Verify your account with a phone number (Settings → Phone Verification). |
-| `CUDA available: False` | Accelerator isn't set to GPU — fix in §1, then restart the session. |
-| `Trainer.__init__() got an unexpected keyword 'processing_class'` | transformers too old — `pip install -U "transformers>=4.46"`. |
-| CUDA out of memory | Lower `--batch-size` (e.g. 16 → 8), or reduce `--subset`. |
-| Session died mid-sweep | Idle timeout — use **Save & Run All (Commit)** for headless runs (§8). |
-| Quota exhausted | The 30 h/week GPU quota resets weekly; spread big sweeps out. |
-
----
-
-See [06-usage.md](06-usage.md) for the command reference shared across all
-environments, and [04-transformers.md](04-transformers.md) for what the training
-actually does.
+| `CUDA error: no kernel image is available` / `P100 not compatible` | You got a P100 — switch the accelerator to **GPU T4 x2** and re-run. Don't use `pip install -U` on torch. |
+| `assert ... CODE_DIR` fails | The clone/copy in step 3 didn't run or used the wrong slug. |
+| `Add the danofer/sarcasm dataset...` | You didn't attach the dataset — do step 2. |
+| `CUDA: False` | Accelerator isn't set to GPU — fix in step 1, then restart. |
+| GPU/Internet greyed out | Verify your Kaggle account with a phone number. |
+| Out of memory | Lower `BATCH_SIZE` in `settings.py` (e.g. to 8). |

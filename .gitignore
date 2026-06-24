@@ -1,6 +1,13 @@
 # Large / generated artifacts — not committed to git
-data/            # raw + processed datasets (download separately)
-models/          # fine-tuned transformer checkpoints (large)
+# (NOTE: keep comments on their OWN lines — git treats an inline "# ..." as part
+#  of the pattern, which is why these were not actually being ignored before.)
+
+# raw + processed datasets (download separately)
+data/
+# fine-tuned transformer checkpoints (large)
+models/
+# generated results (scores + confusion-matrix PNGs)
+results/
 
 # Python
 __pycache__/

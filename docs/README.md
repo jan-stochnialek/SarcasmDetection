@@ -1,35 +1,14 @@
-# Documentation — Sarcasm Detection on SARC
+# Documentation
 
-This folder documents the implementation that lives in [`../project`](../project).
-The high-level research plan (motivation, hypotheses, related work, timeline) is
-in [`../plan.md`](../plan.md). These docs explain **how the code works and how to
-run it**.
+Short and to the point. There are only three things to read:
 
-## Read in this order
-
-| Doc | What it covers |
+| Doc | What it's for |
 |-----|----------------|
-| [01-setup.md](01-setup.md) | Install dependencies, download the dataset, hardware (M1 / GPU) notes |
-| [02-data.md](02-data.md) | The data pipeline: cleaning, splitting, tokenization, how context is built |
-| [03-baseline.md](03-baseline.md) | The TF-IDF + linear classifier baseline |
-| [04-transformers.md](04-transformers.md) | Fine-tuning BERT / RoBERTa, with and without context |
-| [05-evaluation.md](05-evaluation.md) | Metrics and the McNemar significance test |
-| [06-usage.md](06-usage.md) | End-to-end commands, the experiment matrix, and the Colab notebook |
-| [kaggle.md](kaggle.md) | Complete step-by-step guide to running on Kaggle's free GPU |
+| [../project/README.md](../project/README.md) | **How to install and run** the project (start here). |
+| [how-it-works.md](how-it-works.md) | **The ideas** — what sarcasm detection, TF-IDF, BERT and RoBERTa are. Good for the report. |
+| [kaggle.md](kaggle.md) | **Running on Kaggle's free GPU** (recommended for the transformer models). |
 
-## The three model conditions (recap)
+The code itself is heavily commented, so reading the files in `../project/` (and
+`../project/engine/`) is also a good way to understand what happens.
 
-1. **TF-IDF + Logistic Regression / SVM** — classical baseline.
-2. **BERT / RoBERTa, comment only** — transformer without context.
-3. **BERT / RoBERTa, parent + comment** — transformer *with* thread context.
-
-The project's headline question (RQ2) is whether condition 3 beats condition 2 —
-i.e. **does conversation context help?**
-
-## Where things are written
-
-| Path | Contents |
-|------|----------|
-| `../data/raw/` | the downloaded SARC CSV (you provide this) |
-| `../results/`  | metrics JSONs, confusion-matrix PNGs, per-example predictions |
-| `../models/`   | fine-tuned transformer checkpoints |
+The original research plan is in [../plan.md](../plan.md).

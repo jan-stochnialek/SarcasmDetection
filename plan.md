@@ -233,40 +233,43 @@ The headline result is the **within-model context delta** (yes − no) for BERT 
 
 ## 8. Project structure
 
+The code is organised for a beginner: one small script per action (no command-line
+flags), one `settings.py` for the knobs, and the shared logic in `engine/`.
+
 ```
 EmiliaProject/
-├── plan.md                  # this file
-├── README.md                # how to run, results summary
-├── requirements.txt         # pinned dependencies
-├── data/                    # raw + processed (gitignored; large)
-│   ├── raw/                 # train-balanced-sarcasm.csv from Kaggle
-│   └── processed/           # cleaned splits (train/val/test parquet)
-├── notebooks/
-│   ├── 01_eda.ipynb         # exploratory analysis of SARC
-│   ├── 02_baseline_tfidf.ipynb
-│   ├── 03_transformer_finetune.ipynb
-│   └── 04_analysis.ipynb    # tables, plots, error analysis
-├── src/
-│   ├── data.py              # load, clean, split, dataset construction
-│   ├── baseline.py          # TF-IDF + LogReg/SVM
-│   ├── train.py             # HF Trainer fine-tuning (context flag)
-│   ├── evaluate.py          # metrics, confusion matrix, significance tests
-│   └── config.py            # hyperparameters / experiment configs
-├── results/                 # metrics CSVs, figures, saved tables
-└── report/                  # final write-up (paper / slides)
+├── plan.md                       # this file (research plan)
+├── data/raw/                     # train-balanced-sarcasm.csv from Kaggle
+├── results/                      # scores saved here after each run
+├── docs/                         # README, how-it-works, kaggle guide
+└── project/
+    ├── README.md                 # how to install and run
+    ├── requirements.txt
+    ├── settings.py               # the only knobs (sample size, epochs, batch)
+    ├── check_data.py             # 1. load + check the data
+    ├── train_baseline.py             /  train_baseline_context.py    # TF-IDF
+    ├── train_bert.py                 /  train_bert_context.py        # BERT
+    ├── train_roberta.py              /  train_roberta_context.py     # RoBERTa
+    ├── show_results.py           # print the comparison table
+    ├── run_everything.py         # run all of the above in order
+    ├── notebooks/                # ready-made Colab + Kaggle notebooks
+    └── engine/                   # shared code the scripts call (not run directly)
+        ├── data.py               # load, clean, split
+        ├── baseline.py           # TF-IDF + Logistic Regression
+        ├── transformer.py        # fine-tune BERT / RoBERTa
+        └── scoring.py            # metrics + significance + results table
 ```
 
 ### 8.1 Core dependencies
 ```
-python>=3.10
+python==3.12          # 3.13+/3.14 don't have PyTorch wheels yet
 torch
-transformers
+transformers>=4.46    # needs the processing_class API
 datasets
 scikit-learn
-pandas, numpy
-matplotlib, seaborn
-accelerate           # for HF Trainer / mixed precision
-evaluate             # metrics
+pandas, numpy, scipy
+matplotlib
+accelerate            # backs the Hugging Face Trainer
 ```
 
 ---
@@ -306,7 +309,7 @@ early by running a tiny subset end-to-end in Week 1.
 ## 11. Deliverables
 
 1. **`plan.md`** (this document).
-2. **Reproducible code** (`src/` + notebooks) with a `README` describing how to run each
+2. **Reproducible code** (`project/` + notebooks) with a `README` describing how to run each
    stage.
 3. **Results table** comparing TF-IDF / BERT / RoBERTa × {no-context, context} on a fixed
    test set, with metrics and significance tests.
