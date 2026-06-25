@@ -1,17 +1,12 @@
 """
-engine/scoring.py
-=================
 Works out how good a model is, saves each result to a small file, and prints the
 final comparison table at the end.
-
-You do not need to edit this file.
 """
 
 import json
 from pathlib import Path
 
 import numpy as np
-# These are ready-made scoring functions from scikit-learn.
 from sklearn.metrics import (
     accuracy_score,
     precision_recall_fscore_support,
@@ -32,7 +27,7 @@ def measure(true_labels, predicted_labels, predicted_scores):
     predicted_scores the model's confidence that each comment is sarcastic (0..1)
     """
     accuracy = accuracy_score(true_labels, predicted_labels)
-    # precision/recall/f1 for the "sarcastic" class (label 1).
+    # precision/recall/f1 for the sarcastic class (label 1).
     precision, recall, f1, _ = precision_recall_fscore_support(
         true_labels, predicted_labels, average="binary", pos_label=1, zero_division=0
     )

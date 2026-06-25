@@ -1,6 +1,6 @@
 # Sarcasm Detection in Social Media Using Transformer-Based Language Models
 
-**Author:** «Your name» — «Student ID»
+**Author:** Emilia Sobolewska — «Student ID»
 **Course / Module:** «Course code and title»
 **Supervisor:** «Professor name»
 **Date:** «Submission date»
@@ -133,20 +133,20 @@ settings sit in a single file. The layout is:
 
 ```
 project/
-├── settings.py               # all knobs: sample size, epochs, batch size, seq length, seed
-├── engine/                   # shared library (never run directly)
+├── settings.py               # all settings: sample size, epochs, batch size, seq length, seed
+├── engine/                   # shared code
 │   ├── data.py               # load, clean, and thread-level train/test split
 │   ├── baseline.py           # TF-IDF + logistic-regression model
 │   ├── transformer.py        # fine-tunes BERT / RoBERTa (Hugging Face Trainer)
 │   └── scoring.py            # metrics, confusion-matrix figures, results table, McNemar test
-├── train_baseline.py         # ── one thin entry-point script per experiment ──
+├── train_baseline.py         # ── one script per experiment ──
 ├── train_baseline_context.py
 ├── train_bert.py  /  train_bert_context.py
 ├── train_roberta.py  /  train_roberta_context.py
 ├── run_everything.py         # runs all six experiments in order + prints the comparison
-├── check_data.py             # sanity-check the data before training
+├── check_data.py             # checks the data before training
 ├── show_results.py           # print the comparison table from saved results
-└── notebooks/colab_pro.ipynb # one-click Google Colab runner
+└── notebooks/colab_pro.ipynb # Google Colab runner
 ```
 
 **What each part does.**

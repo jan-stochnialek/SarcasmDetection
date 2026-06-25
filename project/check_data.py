@@ -1,13 +1,11 @@
 """
 check_data.py
 =============
-RUN THIS FIRST.
+RUN FIRST.
 
-It loads the Reddit data, cleans it, and prints how many comments there are and
+Loads the Reddit data, cleans it, and prints how many comments there are and
 how they split into a training set and a test set. If this runs without errors,
 your data is set up correctly and you can move on to the train_*.py scripts.
-
-    python check_data.py
 """
 
 from engine.data import load_comments, split_train_test

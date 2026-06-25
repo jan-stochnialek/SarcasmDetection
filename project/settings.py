@@ -1,12 +1,3 @@
-"""
-settings.py
-===========
-THE ONE FILE YOU MIGHT WANT TO CHANGE.
-
-Each value below controls how the project runs. Change a value, save the file,
-then run a script again. You do not need to touch any other file.
-"""
-
 # ---------------------------------------------------------------------------
 # How many comments to use.
 # The full data file has about 1,000,000 comments, which is slow to train on.

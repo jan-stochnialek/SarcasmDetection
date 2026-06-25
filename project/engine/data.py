@@ -3,7 +3,6 @@ Loads the Reddit comments from the CSV file, cleans the text, and splits the
 comments into a TRAINING set (used to teach the models) and a TEST set (used to
 grade them on comments they have never seen).
 """
-
 import os
 import re
 from pathlib import Path
@@ -20,14 +19,11 @@ DATA_FILE = os.environ.get("SARC_CSV", str(DEFAULT_FILE))
 
 def _clean_text(text):
     """Tidy up one comment.
-
-    Pretrained models prefer normal, raw text, so we only do a little cleaning:
       - remove the Reddit "/s" sarcasm tag (otherwise the model could just look
         for that tag instead of actually learning),
       - replace web links and usernames with simple placeholders,
       - squeeze repeated spaces into one.
     """
-    # Some rows are empty/missing; pandas stores those as a non-text value.
     if not isinstance(text, str):
         return ""
     text = re.sub(r"\s*/s\b", " ", text, flags=re.IGNORECASE)   # drop the "/s" tag

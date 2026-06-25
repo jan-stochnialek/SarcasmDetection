@@ -1,15 +1,5 @@
 """
-engine/transformer.py
-=====================
 Fine-tunes a transformer model (BERT or RoBERTa) to detect sarcasm.
-
-"Fine-tuning" means: take a model that ALREADY understands English (it was trained
-on a huge amount of text by Google/Facebook) and train it a little more on our
-sarcasm examples. That is much cheaper than training from scratch.
-
-This is fast on a GPU. It also runs on a normal computer, just slowly.
-
-You do not need to edit this file.
 """
 
 from pathlib import Path
