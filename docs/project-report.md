@@ -207,8 +207,13 @@ direction is read from the accuracy.)
 (McNemar's test reports whether the two versions' predictions differ significantly;
 the **direction** of each change is read from the accuracy column.)
 
-Confusion matrices for each model are provided as `*_confusion.png` in the results
-folder (see Appendix); «Figure 1 shows the confusion matrix for the best model.»
+Confusion matrices for each model are saved as `*_confusion.png` in the `results/`
+folder. Figure 1 shows the matrix for the best model, RoBERTa with context.
+
+![Confusion matrix for RoBERTa with context, the best model, on the held-out test set](../results/RoBERTa_with_context_confusion.png)
+
+**Figure 1.** Confusion matrix for RoBERTa with context (the best model) on the
+151,346-comment held-out test set.
 
 ## 8. Discussion
 

@@ -6,8 +6,9 @@
 data/
 # fine-tuned transformer checkpoints (large)
 models/
-# generated results (scores + confusion-matrix PNGs)
-results/
+# generated results: keep the scores (JSON) and confusion-matrix figures (PNG),
+# but not the big per-example prediction arrays
+results/*.npz
 
 # Python
 __pycache__/
