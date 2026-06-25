@@ -45,14 +45,3 @@ LEARNING_RATE = 2e-5
 # (This setting does not affect the simple baseline model.)
 # ---------------------------------------------------------------------------
 MAX_TOKENS = 256
-
-# ---------------------------------------------------------------------------
-# Where the TEST set comes from.
-#   False -> carve a test set out of the training file (the quick default). The
-#            split is grouped by parent comment, so the same thread never appears
-#            in both training and testing.
-#   True  -> evaluate on SARC's OFFICIAL held-out test set instead
-#            (data/raw/test-balanced.csv, which also needs comments.json). Use
-#            this for numbers you can compare against the published SARC paper.
-# ---------------------------------------------------------------------------
-USE_OFFICIAL_TEST_SPLIT = False

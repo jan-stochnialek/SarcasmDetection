@@ -6,7 +6,6 @@ grade them on comments they have never seen).
 
 import os
 import re
-import json
 from pathlib import Path
 import pandas as pd
 from sklearn.model_selection import GroupShuffleSplit
@@ -17,14 +16,6 @@ PROJECT_FOLDER = Path(__file__).resolve().parent.parent
 DATA_FOLDER = PROJECT_FOLDER.parent / "data" / "raw"
 DEFAULT_FILE = DATA_FOLDER / "train-balanced-sarcasm.csv"
 DATA_FILE = os.environ.get("SARC_CSV", str(DEFAULT_FILE))
-
-# SARC's OFFICIAL held-out test set (used only when settings.USE_OFFICIAL_TEST_SPLIT
-# is True). On Kaggle this ships in the raw SARC format, whose comment text lives in
-# a separate comments.json — see load_official_test() below. Both locations can be
-# overridden with environment variables (handy on Kaggle).
-DEFAULT_TEST_FILE = DATA_FOLDER / "test-balanced.csv"
-TEST_FILE = os.environ.get("SARC_TEST_CSV", str(DEFAULT_TEST_FILE))
-COMMENTS_JSON = os.environ.get("SARC_COMMENTS_JSON", str(DATA_FOLDER / "comments.json"))
 
 
 def _clean_text(text):
@@ -98,97 +89,5 @@ def split_train_test(data):
 
 
 def get_train_and_test():
-    """Produce a (training, testing) pair of tables.
-
-    Controlled by settings.USE_OFFICIAL_TEST_SPLIT:
-      False (default) - carve a held-out test set out of the training file with a
-                        parent-grouped split (see split_train_test).
-      True            - train on the whole training file and grade on SARC's
-                        OFFICIAL held-out test set (see load_official_test), for
-                        numbers comparable to the published SARC results.
-    """
-    if settings.USE_OFFICIAL_TEST_SPLIT:
-        train_data = load_comments()
-        test_data = load_official_test()
-        return train_data, test_data
+    """Do everything in one call: load + clean + split."""
     return split_train_test(load_comments())
-
-
-def load_official_test():
-    """Load SARC's official held-out test set as a label/comment/parent table.
-
-    The Kaggle dataset ships the test split in the ORIGINAL ("raw") SARC format,
-    which is different from the friendly train-balanced-sarcasm.csv: every line is
-
-        post_id ancestor_id ... | response_id ... | label ...
-
-    (the three sections separated by "|", ids space-separated) and the actual
-    comment text lives in a separate comments.json lookup. We detect the format
-    automatically: if the file already has the friendly columns we read them
-    directly; otherwise we rebuild the table from the raw ids + comments.json.
-    """
-    path = Path(TEST_FILE)
-    if not path.exists():
-        raise FileNotFoundError(
-            f"Official test file not found: {path}\n"
-            "Either set USE_OFFICIAL_TEST_SPLIT = False in settings.py, or put "
-            "test-balanced.csv from the SARC/Kaggle dataset into data/raw/ "
-            "(or point the SARC_TEST_CSV environment variable at it)."
-        )
-
-    # Peek at the header only (no comment rows) to tell the two formats apart.
-    header = list(pd.read_csv(path, nrows=0).columns)
-    if {"label", "comment", "parent_comment"}.issubset(header):
-        data = pd.read_csv(path, usecols=["label", "comment", "parent_comment"])
-    else:
-        data = _load_raw_sarc_test(path)
-
-    # Clean exactly like the training data so the two are comparable.
-    data = data.dropna(subset=["comment", "parent_comment"])
-    data["comment"] = data["comment"].apply(_clean_text)
-    data["parent_comment"] = data["parent_comment"].apply(_clean_text)
-    data = data[(data["comment"] != "") & (data["parent_comment"] != "")]
-    return data.reset_index(drop=True)
-
-
-def _load_raw_sarc_test(path):
-    """Rebuild a label/comment/parent table from a raw-format SARC file.
-
-    Needs comments.json (the id -> comment-text lookup) alongside it.
-    """
-    comments_path = Path(COMMENTS_JSON)
-    if not comments_path.exists():
-        raise FileNotFoundError(
-            f"'{path.name}' is in the raw SARC format, which needs the comment-text "
-            f"lookup, but comments.json was not found at {comments_path}.\n"
-            "Download comments.json from the SARC/Kaggle dataset into data/raw/ "
-            "(or point the SARC_COMMENTS_JSON environment variable at it)."
-        )
-
-    with open(comments_path, "r", encoding="utf-8") as f:
-        comments = json.load(f)
-
-    def text_of(comment_id):
-        entry = comments.get(comment_id)
-        return entry.get("text", "") if entry else None
-
-    rows = []
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            parts = line.strip().split("|")
-            if len(parts) != 3:
-                continue
-            context_ids = parts[0].split()
-            response_ids = parts[1].split()
-            labels = parts[2].split()
-            if not context_ids or len(response_ids) != len(labels):
-                continue
-            parent_text = text_of(context_ids[-1])   # immediate parent = last context id
-            if not parent_text:
-                continue
-            for response_id, label in zip(response_ids, labels):
-                comment_text = text_of(response_id)
-                if comment_text:
-                    rows.append((int(label), comment_text, parent_text))
-
-    return pd.DataFrame(rows, columns=["label", "comment", "parent_comment"])

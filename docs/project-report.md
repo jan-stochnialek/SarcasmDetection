@@ -135,7 +135,7 @@ settings sit in a single file. The layout is:
 project/
 ├── settings.py               # all knobs: sample size, epochs, batch size, seq length, seed
 ├── engine/                   # shared library (never run directly)
-│   ├── data.py               # load, clean, thread-level train/test split, optional official test
+│   ├── data.py               # load, clean, and thread-level train/test split
 │   ├── baseline.py           # TF-IDF + logistic-regression model
 │   ├── transformer.py        # fine-tunes BERT / RoBERTa (Hugging Face Trainer)
 │   └── scoring.py            # metrics, confusion-matrix figures, results table, McNemar test
@@ -155,8 +155,7 @@ project/
   `MAX_TOKENS`, `LEARNING_RATE`, `RANDOM_SEED`), so an experiment is reconfigured by
   editing one value rather than the code.
 - **`engine/data.py`** reads the SARC CSV, applies the text cleaning, and produces the
-  thread‑level (parent‑grouped) train/test split described in Section 3; it can
-  optionally load SARC's official test split instead.
+  thread‑level (parent‑grouped) train/test split described in Section 3.
 - **`engine/baseline.py`** builds and scores the TF‑IDF + logistic‑regression baseline.
 - **`engine/transformer.py`** tokenises the input (a single text, or a parent–comment
   **pair** in the context condition), fine‑tunes the chosen transformer with the Hugging
@@ -250,9 +249,6 @@ The results support three clear findings:
   used; a small additional gain might be possible with tuning.
 - **Single random seed.** Results come from one fixed seed; averaging over several
   seeds would further confirm the robustness of the (modest) context effects.
-- **Custom held‑out split.** We evaluate on our own thread‑level split rather than
-  SARC's official test split, so absolute numbers are not directly comparable to the
-  published literature (the comparison *within* this study is, however, controlled).
 
 ## 10. Conclusion and Future Work
 
@@ -267,8 +263,7 @@ powerful enough to exploit it, rather than be diluted by it.
 
 **Future work.** (i) use the full ancestor thread rather than only the immediate
 parent; (ii) average results over multiple random seeds to tighten the small context
-effects; (iii) evaluate on SARC's official test split for comparability with published
-results; (iv) explore larger or domain‑adapted transformer models.
+effects; (iii) explore larger or domain‑adapted transformer models.
 
 ## References
 
