@@ -72,8 +72,12 @@ subset contains roughly equal numbers of sarcastic and non‑sarcastic comments.
 usernames were replaced with placeholders, and repeated whitespace collapsed. Rows
 with an empty comment or parent were dropped.
 
-**Train/test split.** Data were split **85% / 15%** into training and test sets.
-Crucially, the split is performed **at the thread (parent) level**: every reply to a
+**Train/test split.** Data were split **85% / 15%** into training and test sets. With
+over a million comments, a 15% test set (~151k) is already more than large enough for
+low‑variance metric estimates and a well‑powered significance test, so the larger 85%
+training share maximises the data available for fine‑tuning; the exact ratio is not
+critical at this scale (80/20 or 90/10 give equivalent conclusions). Crucially, the
+split is performed **at the thread (parent) level**: every reply to a
 given parent goes entirely to one side of the split. This prevents *context leakage*
 — in balanced SARC the same parent often appears with both a sarcastic and a
 non‑sarcastic reply, so a naive comment‑level split would let the model see a
